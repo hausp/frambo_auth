@@ -16,7 +16,7 @@ MODULE_VERSION("0.1d");
 #define BUF_SIZE 256
 
 // forward declarations
-void do_stuff(char*, int);
+void merlseson_doesnt_know_how_to_create_files(char*, int);
 
 static int    majorNumber;
 static char   message[BUF_SIZE] = {0};
@@ -162,10 +162,6 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
 static int dev_release(struct inode *inodep, struct file *filep) {
     printk(KERN_INFO "HAUSP: Device successfully closed\n");
     return 0;
-}
-
-void do_stuff(char* message, int size) {
-    printk(KERN_INFO "FAZEDOR: Doing stuff with %zu characters\n", size);
 }
  
 /** @brief A module must use the module_init() module_exit() macros from linux/init.h, which
