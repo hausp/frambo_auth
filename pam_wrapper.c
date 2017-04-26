@@ -5,6 +5,6 @@
 #include <linux/fs.h>
 #include <asm/uaccess.h>
 
-void merlseson_doesnt_know_how_to_create_files(char* message, int size) {
-    printk(KERN_INFO "FAZEDOR: Doing stuff with %zu characters\n", size);
+void process_command(char* command, int size) {
+    printk(KERN_INFO "HAUSP: Processing command\n");
 }

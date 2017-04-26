@@ -16,7 +16,7 @@ MODULE_VERSION("0.1d");
 #define BUF_SIZE 256
 
 // forward declarations
-void merlseson_doesnt_know_how_to_create_files(char*, int);
+extern void process_command(char*, int);
 
 static int    majorNumber;
 static char   message[BUF_SIZE] = {0};
@@ -150,7 +150,7 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
     sprintf(message, "%.*s\n", len, buffer);
     size_of_message = strlen(message);
     printk(KERN_INFO "HAUSP: Received %zu characters from the user\n", len);
-    do_stuff(message, len);
+    process_command(message, len);
     return len;
 }
  
