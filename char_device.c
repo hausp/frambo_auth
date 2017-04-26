@@ -4,6 +4,7 @@
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <asm/uaccess.h>
+
 #define  DEVICE_NAME "raspchar"
 #define  CLASS_NAME  "rasp"
 
@@ -13,6 +14,9 @@ MODULE_DESCRIPTION("A simple Linux char driver");
 MODULE_VERSION("0.1d");
 
 #define BUF_SIZE 256
+
+// forward declarations
+void do_stuff(char*, int);
 
 static int    majorNumber;
 static char   message[BUF_SIZE] = {0};
@@ -141,12 +145,13 @@ static ssize_t dev_read(struct file *filep, char __user *buffer, size_t len, lof
  *  @param offset The offset if required
  */
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset) {
-    int original = len;
+    // int original = len;
     len = (len > BUF_SIZE - 1) ? BUF_SIZE - 1: len;
     sprintf(message, "%.*s\n", len, buffer);
     size_of_message = strlen(message);
     printk(KERN_INFO "HAUSP: Received %zu characters from the user\n", len);
-    return original;
+    do_stuff(message, len);
+    return len;
 }
  
 /** @brief The device release function that is called whenever the device is closed/released by
@@ -157,6 +162,10 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
 static int dev_release(struct inode *inodep, struct file *filep) {
     printk(KERN_INFO "HAUSP: Device successfully closed\n");
     return 0;
+}
+
+void do_stuff(char* message, int size) {
+    printk(KERN_INFO "FAZEDOR: Doing stuff with %zu characters\n", size);
 }
  
 /** @brief A module must use the module_init() module_exit() macros from linux/init.h, which
