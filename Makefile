@@ -7,7 +7,7 @@ PWD := $(shell pwd)
 module_name := char_device
 
 obj-m += $(module_name).o
-$(module_name)-objs := $(obj-m) pam_wrapper.o
+$(module_name)-objs := pam_wrapper.o
 
 default:
 	@echo $($(module_name)-objs)
