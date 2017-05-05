@@ -16,7 +16,7 @@ MODULE_VERSION("0.1d");
 #define BUF_SIZE 256
 
 // forward declarations
-extern void process_command(char*, int);
+extern void process_command(int);
 
 static int    majorNumber;
 static char   message[BUF_SIZE] = {0};
@@ -146,11 +146,16 @@ static ssize_t dev_read(struct file *filep, char __user *buffer, size_t len, lof
  */
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset) {
     // int original = len;
+    unsigned long result;
     len = (len > BUF_SIZE - 1) ? BUF_SIZE - 1: len;
-    sprintf(message, "%.*s\n", len, buffer);
+    sprintf(message, "%.*s", len, buffer);
     size_of_message = strlen(message);
     printk(KERN_INFO "HAUSP: Received %zu characters from the user\n", len);
-    process_command(message, len);
+    if (kstrtoul(message, 10, &result) == 0) {
+        process_command(result);
+    } else {
+        printk(KERN_INFO "HAUSP: kk eae men, bacana sua mensagem \"%s\"", message);
+    }
     return len;
 }
  
