@@ -16,7 +16,7 @@ MODULE_VERSION("0.1d");
 #define BUF_SIZE 256
 
 // forward declarations
-extern void process_command(int);
+extern int process_command(char*);
 
 static int    majorNumber;
 static char   message[BUF_SIZE] = {0};
@@ -24,6 +24,8 @@ static ssize_t  size_of_message;
 static int    numberOpens = 0;
 static struct class*  raspcharClass  = NULL;
 static struct device* raspcharDevice = NULL;
+
+static int    authStatus = 1;
  
 // The prototype functions for the character driver -- must come before the struct definition
 static int     dev_open(struct inode *, struct file *);
@@ -100,7 +102,7 @@ static void __exit raspchar_exit(void) {
  */
 static int dev_open(struct inode *inodep, struct file *filep) {
     numberOpens++;
-    printk(KERN_INFO "HAUSP: Device has been opened %d time(s)\n", numberOpens);
+    // printk(KERN_INFO "HAUSP: Device has been opened %d time(s)\n", numberOpens);
     return 0;
 }
  
@@ -114,12 +116,24 @@ static int dev_open(struct inode *inodep, struct file *filep) {
  */
 static ssize_t dev_read(struct file *filep, char __user *buffer, size_t len, loff_t *offset) {
     int error_count = 0;
+    char* auth_message;
     // copy_to_user has the format ( * to, *from, size) and returns 0 on success
     if (*offset != 0) {
         return 0;
     }
 
-    error_count = copy_to_user(buffer, message, size_of_message);
+
+    if (authStatus == 0) {
+        auth_message = "OK";
+        size_of_message = 2;
+    } else {
+        auth_message = "FAIL";
+        size_of_message = 4;
+    }
+
+    error_count = copy_to_user(buffer, auth_message, size_of_message);
+
+    authStatus = 1;
 
     if (len < size_of_message) {
         return -EINVAL;
@@ -127,11 +141,11 @@ static ssize_t dev_read(struct file *filep, char __user *buffer, size_t len, lof
  
     // if true then have success
     if (error_count == 0) {
-        printk(KERN_INFO "HAUSP: Sent %d characters to the user\n", size_of_message);
+        // printk(KERN_INFO "HAUSP: Sent %d characters to the user\n", size_of_message);
         *offset += len;
         return len;
     } else {
-        printk(KERN_INFO "HAUSP: Failed to send %d characters to the user\n", error_count);
+        // printk(KERN_INFO "HAUSP: Failed to send %d characters to the user\n", error_count);
         return -EFAULT;
     }
 }
@@ -146,16 +160,11 @@ static ssize_t dev_read(struct file *filep, char __user *buffer, size_t len, lof
  */
 static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, loff_t *offset) {
     // int original = len;
-    unsigned long result;
     len = (len > BUF_SIZE - 1) ? BUF_SIZE - 1: len;
     sprintf(message, "%.*s", len, buffer);
     size_of_message = strlen(message);
-    printk(KERN_INFO "HAUSP: Received %zu characters from the user\n", len);
-    if (kstrtoul(message, 10, &result) == 0) {
-        process_command(result);
-    } else {
-        printk(KERN_INFO "HAUSP: kk eae men, bacana sua mensagem \"%s\"", message);
-    }
+    // printk(KERN_INFO "HAUSP: Received %zu characters from the user\n", len);
+    authStatus = process_command(message);
     return len;
 }
  
@@ -165,7 +174,7 @@ static ssize_t dev_write(struct file *filep, const char *buffer, size_t len, lof
  *  @param filep A pointer to a file object (defined in linux/fs.h)
  */
 static int dev_release(struct inode *inodep, struct file *filep) {
-    printk(KERN_INFO "HAUSP: Device successfully closed\n");
+    // printk(KERN_INFO "HAUSP: Device successfully closed\n");
     return 0;
 }
  
