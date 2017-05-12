@@ -1,16 +1,15 @@
-ARCH:=arm
-CROSS_COMPILE:=arm-linux-gnueabihf-
-tools_prefix :=/home/thiagobbt/Stuff/raspberry-tools
-KDIR :=/home/thiagobbt/Stuff/linux-rpi
-PWD :=$(shell pwd)
-PATH +=:$(tools_prefix)/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
+export ARCH:=arm
+export CROSS_COMPILE:=arm-linux-gnueabihf-
 
-module_name := hausp
+KDIR :=../linux-rpi
+PATH +=:../raspberry-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
 
-obj-m += $(module_name).o
-$(module_name)-objs := char_device.o pam_wrapper.o
+NAME :=hausp
+
+obj-m +=$(NAME).o
+$(NAME)-objs :=char_device.o pam_wrapper.o
 
 default:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules ARCH:=$(ARCH) CROSS_COMPILE:=$(CROSS_COMPILE)
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
