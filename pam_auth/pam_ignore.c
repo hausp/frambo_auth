@@ -8,6 +8,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <string.h>
+#include <stdlib.h>
+
 /* Include PAM headers */
 #include <security/pam_appl.h>
 #include <security/pam_modules.h>
@@ -31,21 +34,24 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const char **argv)
 int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
     const char *user = NULL;
     int pgu_ret;
+    int file = open("/dev/raspchar", O_RDWR);
+    char* command;
+    char response[5];
 
     pgu_ret = pam_get_user(pamh, &user, NULL);
+
+    command = (char*)malloc(sizeof(char) * (6+strlen(user)));
 
     if (pgu_ret != PAM_SUCCESS || user == NULL) {
         return PAM_IGNORE;
     }
 
-    int file = open("/dev/raspchar", O_RDWR);
-    char* command = "AUTH ";
-    char[5] response;
+    memcpy(command, "AUTH \0", 6);
     strcat(command, user);
 
-    if (write(file, &command, sizeof(command)) > 0) {
+    if (write(file, command, strlen(command)) > 0) {
         if (read(file, &response, sizeof(response)) > 0) {
-            if (strncmp(response, "OK", 2) == ) {
+            if (strncmp(response, "OK", 2) == 0) {
                 return PAM_SUCCESS;
             }
         }

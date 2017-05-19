@@ -9,10 +9,10 @@
 
 MODULE_LICENSE("GPL v2");
 
-#define USER_SIZE 4
+#define USER_SIZE 33
 #define MAX_AUTHORIZED_USERS 50
 
-char* authorized_users[MAX_AUTHORIZED_USERS];
+char* users[MAX_AUTHORIZED_USERS];
 int registered_users = 0;
 
 int decompose(char* full_command, char* command, char* user) {
@@ -25,8 +25,8 @@ int decompose(char* full_command, char* command, char* user) {
 int search(char* user) {
 	int i;
 	for (i = 0; i < registered_users; i++) {
-		printk(KERN_INFO "HAUSP: Comparing to %s\n", authorized_users[i]);
-		if (strcmp(authorized_users[i], user) == 0) {
+		printk(KERN_INFO "HAUSP: Comparing to %s\n", users[i]);
+		if (strcmp(users[i], user) == 0) {
 			return i;
 		}
 	}
@@ -37,6 +37,7 @@ int process_command(char* command) {
 	char user[USER_SIZE];
 	int i, index;
 	printk(KERN_INFO "HAUSP: Processing command\n");
+	printk(KERN_INFO "HAUSP: received command = %s\n", command);
 	if (decompose(command, "AUTH", user)) {
 		printk(KERN_INFO "HAUSP: user = %s\n", user);
 		if (search(user) >= 0) {
@@ -49,8 +50,8 @@ int process_command(char* command) {
 	} else if (decompose(command, "ADD", user)) {
 		index = search(user);
 		if (index == -1 && registered_users < MAX_AUTHORIZED_USERS) {
-			authorized_users[registered_users] = kmalloc(sizeof(char) * USER_SIZE, GFP_KERNEL);
-			memcpy(authorized_users[registered_users++], &user, USER_SIZE);
+			users[registered_users] = kmalloc(sizeof(char) * USER_SIZE, GFP_KERNEL);
+			memcpy(users[registered_users++], &user, USER_SIZE);
 			printk(KERN_INFO "HAUSP: %s added\n", user);
 		} else if (index != -1) {
 			printk(KERN_INFO "HAUSP: Duplicate USER\n");
@@ -60,9 +61,9 @@ int process_command(char* command) {
 	} else if (decompose(command, "REMOVE", user)) {
 		index = search(user);
 		if (index >= 0) {
-			kfree(authorized_users[index]);
+			kfree(users[index]);
 			for (i = index; i < MAX_AUTHORIZED_USERS; i++) {
-				authorized_users[i] = authorized_users[i + 1];
+				users[i] = users[i + 1];
 			}
 			--registered_users;
 		}
