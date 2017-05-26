@@ -7,10 +7,9 @@
 #include <linux/string.h>
 #include <asm/uaccess.h>
 
-MODULE_LICENSE("GPL v2");
+#include "user_list.h"
 
-#define USER_SIZE 33
-#define MAX_AUTHORIZED_USERS 50
+MODULE_LICENSE("GPL v2");
 
 char* users[MAX_AUTHORIZED_USERS];
 int registered_users = 0;
