@@ -7,22 +7,24 @@
 #define MAX_AUTHORIZED_USERS 50
 
 typedef uint32_t rfid_t;
-typedef uint8_t[32] hash_t;
+typedef uint32_t hash_t;
 
-struct Entry {
-    const char user[USER_SIZE];
+extern struct Entry {
+    char* user;
     hash_t rfid_hash;
-};
+} Entry;
 
-struct List {
-    Entry entries[MAX_AUTHORIZED_USERS];
-    int size = 0;
-};
+extern struct List {
+    struct Entry* entries[MAX_AUTHORIZED_USERS];
+    int size;
+} List;
 
-int search(const List* list, const char* user);
-int insert(List* list, const char* user, rfid_t rfid);
-int remove(List* list, const char* user);
+struct List* list_create(void);
 
-uint8_t* hash_it(const char* plaintext);
+int list_search(const struct List* list, const char* user);
+int list_insert(struct List* list, const char* user, rfid_t rfid);
+int list_remove(struct List* list, const char* user);
+
+extern hash_t hash_it(const char* plaintext);
 
 #endif

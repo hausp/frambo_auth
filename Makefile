@@ -10,7 +10,7 @@ PAMDIR :=pam_auth
 PAMSO  :=$(patsubst $(PAMDIR)/%.c,%.so,$(wildcard $(PAMDIR)/*.c))
 
 obj-m +=$(NAME).o
-$(NAME)-objs :=char_device.o pam_wrapper.o
+$(NAME)-objs :=char_device.o pam_wrapper.o user_list.o
 
 default:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules

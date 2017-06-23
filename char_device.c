@@ -17,6 +17,7 @@ MODULE_VERSION("0.1d");
 
 // forward declarations
 extern int process_command(char*);
+extern int pam_init(void);
 
 static int    majorNumber;
 static char   message[BUF_SIZE] = {0};
@@ -80,6 +81,7 @@ static int __init raspchar_init(void) {
         return PTR_ERR(raspcharDevice);
     }
     printk(KERN_INFO "HAUSP: device class created correctly\n");
+    pam_init();
     return 0;
 }
  
