@@ -30,6 +30,37 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const char **argv)
     return PAM_SUCCESS;
 }
 
+// const char* call_python(const char* filename) {
+//     int link[2];
+//     pid_t pid;
+//     char foo[4096];
+
+//     if (pipe(link)==-1)
+//         die("pipe failed");
+
+//     if ((pid = fork()) == -1)
+//         die("fork failed");
+
+//     if(pid == 0) {
+
+//     dup2 (link[1], STDOUT_FILENO);
+//     close(link[0]);
+//     close(link[1]);
+//     execl("/bin/ls", "ls", "-1", (char *)0);
+//     die("execl");
+
+//     } else {
+
+//     close(link[1]);
+//     int nbytes = read(link[0], foo, sizeof(foo));
+//     printf("Output: (%.*s)\n", nbytes, foo);
+//     wait(NULL);
+
+//     }
+//     return 0;
+//     }
+// }
+
 /* PAM entry point for authentication verification */
 int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
     const char *user = NULL;
@@ -47,6 +78,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
     }
 
     memcpy(command, "AUTH \0", 6);
+    // exec("")
     strcat(command, user);
 
     if (write(file, command, strlen(command)) > 0) {
