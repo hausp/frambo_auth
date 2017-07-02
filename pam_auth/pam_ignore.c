@@ -70,7 +70,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
 
     pgu_ret = pam_get_user(pamh, &user, NULL);
 
-    const char* rfid = call_python("loremipsum.py");
+    const char* rfid = call_python("/usr/sbin/rfid_reader");
 
     command = (char*)malloc(sizeof(char) * (7 + strlen(user) + strlen(rfid)));
 

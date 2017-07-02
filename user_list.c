@@ -43,9 +43,9 @@ int list_search(const struct List* list, const char* user) {
     return -1;
 }
 
-int list_insert(struct List* list, const char* user, rfid_t rfid) {
+int list_insert(struct List* list, const char* user, hash_t rfid) {
     struct Entry entry;
-    char* rfid_text = kmalloc(11 * sizeof(char), GFP_KERNEL);
+    // char* rfid_text = kmalloc(11 * sizeof(char), GFP_KERNEL);
     int begin = 0;
     int end = list->size - 1;
     int middle = 0;
@@ -55,11 +55,12 @@ int list_insert(struct List* list, const char* user, rfid_t rfid) {
 
     if (list->size < MAX_AUTHORIZED_USERS) {
         printk(KERN_INFO "HAUSP: user = %s\n", user);
-        sprintf(rfid_text, "%d", rfid);
+        // sprintf(rfid_text, "%d", rfid);
         entry.user = kmalloc((strlen(user) + 1) * sizeof(char), GFP_KERNEL);
         strcpy(entry.user, user);
         printk(KERN_INFO "HAUSP: entry.user = %s\n", entry.user);
-        entry.rfid_hash = hash_it(rfid_text);
+        entry.rfid_hash = rfid;
+        // entry.rfid_hash = rfid_text;
 
         while (begin <= end) {
             printk(KERN_INFO "HAUSP: begin = %d\n", begin);

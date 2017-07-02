@@ -22,7 +22,7 @@ extern struct List {
 struct List* list_create(void);
 
 int list_search(const struct List* list, const char* user);
-int list_insert(struct List* list, const char* user, rfid_t rfid);
+int list_insert(struct List* list, const char* user, hash_t rfid);
 int list_remove(struct List* list, const char* user);
 
 extern hash_t hash_it(const char* plaintext);

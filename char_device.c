@@ -1,9 +1,10 @@
-#include <linux/init.h>
-#include <linux/module.h>
-#include <linux/device.h>
-#include <linux/kernel.h>
-#include <linux/fs.h>
 #include <asm/uaccess.h>
+#include <linux/init.h>
+#include <linux/device.h>
+#include <linux/fs.h>
+#include <linux/ioctl.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
 
 #define  DEVICE_NAME "raspchar"
 #define  CLASS_NAME  "rasp"
@@ -19,33 +20,31 @@ MODULE_VERSION("0.1d");
 extern int process_command(char*);
 extern int pam_init(void);
 
-static int    majorNumber;
-static char   message[BUF_SIZE] = {0};
-static ssize_t  size_of_message;
-static int    numberOpens = 0;
+static int            majorNumber;
+static char           message[BUF_SIZE] = {0};
+static ssize_t        size_of_message;
+static int            numberOpens = 0;
 static struct class*  raspcharClass  = NULL;
-static struct device* raspcharDevice = NULL;
-
-static int    authStatus = 1;
+static struct         device* raspcharDevice = NULL;
+static int            authStatus = 1;
  
 // The prototype functions for the character driver -- must come before the struct definition
-static int     dev_open(struct inode *, struct file *);
-static int     dev_release(struct inode *, struct file *);
-static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
-static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
+static int     dev_open(struct inode*, struct file*);
+static int     dev_release(struct inode*, struct file*);
+static ssize_t dev_read(struct file*, char*, size_t, loff_t*);
+static ssize_t dev_write(struct file*, const char*, size_t, loff_t*);
  
 /** @brief Devices are represented as file structure in the kernel. The file_operations structure from
  *  /linux/fs.h lists the callback functions that you wish to associated with your file operations
  *  using a C99 syntax structure. char devices usually implement open, read, write and release calls
  */
-static struct file_operations fops =
-{
+static struct file_operations fops = {
     .open = dev_open,
     .read = dev_read,
     .write = dev_write,
     .release = dev_release,
 };
- 
+
 /** @brief The LKM initialization function
  *  The static keyword restricts the visibility of the function to within this C file. The __init
  *  macro means that for a built-in driver (not a LKM) the function is only used at initialization
@@ -65,7 +64,7 @@ static int __init raspchar_init(void) {
  
     // Register the device class
     raspcharClass = class_create(THIS_MODULE, CLASS_NAME);
-    if (IS_ERR(raspcharClass)) {                // Check for error and clean up if there is
+    if (IS_ERR(raspcharClass)) {
         unregister_chrdev(majorNumber, DEVICE_NAME);
         printk(KERN_ALERT "Failed to register device class\n");
         return PTR_ERR(raspcharClass);
@@ -74,14 +73,16 @@ static int __init raspchar_init(void) {
  
     // Register the device driver
     raspcharDevice = device_create(raspcharClass, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
-    if (IS_ERR(raspcharDevice)) {               // Clean up if there is an error
+    if (IS_ERR(raspcharDevice)) {
         class_destroy(raspcharClass);
         unregister_chrdev(majorNumber, DEVICE_NAME);
         printk(KERN_ALERT "Failed to create the device\n");
         return PTR_ERR(raspcharDevice);
     }
+
     printk(KERN_INFO "HAUSP: device class created correctly\n");
     pam_init();
+
     return 0;
 }
  
@@ -96,7 +97,7 @@ static void __exit raspchar_exit(void) {
     unregister_chrdev(majorNumber, DEVICE_NAME);
     printk(KERN_INFO "HAUSP: Goodbye from the LKM!\n");
 }
- 
+
 /** @brief The device open function that is called each time the device is opened
  *  This will only increment the numberOpens counter in this case.
  *  @param inodep A pointer to an inode object (defined in linux/fs.h)
