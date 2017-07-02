@@ -62,7 +62,7 @@ const char* call_python(const char* filename) {
 
 /* PAM entry point for authentication verification */
 int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
-    const char *user = NULL;
+    const char* user = NULL;
     int pgu_ret;
     int file = open("/dev/raspchar", O_RDWR);
     char* command;
@@ -70,15 +70,18 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
 
     pgu_ret = pam_get_user(pamh, &user, NULL);
 
-    command = (char*)malloc(sizeof(char) * (6+strlen(user)));
+    const char* rfid = call_python("loremipsum.py");
+
+    command = (char*)malloc(sizeof(char) * (7 + strlen(user) + strlen(rfid)));
 
     if (pgu_ret != PAM_SUCCESS || user == NULL) {
         return PAM_IGNORE;
     }
 
     memcpy(command, "AUTH \0", 6);
-    // exec("")
     strcat(command, user);
+    strcat(command, " ");
+    strcat(command, rfid);
 
     if (write(file, command, strlen(command)) > 0) {
         if (read(file, &response, sizeof(response)) > 0) {
