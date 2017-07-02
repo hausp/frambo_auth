@@ -4,6 +4,8 @@
 #define PAM_SM_PASSWORD
 #define PAM_SM_SESSION
 
+#include <assert.h>
+
 /* Read/Write includes */ 
 #include <fcntl.h>
 #include <unistd.h>
@@ -30,36 +32,33 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int flags, int argc, const char **argv)
     return PAM_SUCCESS;
 }
 
-// const char* call_python(const char* filename) {
-//     int link[2];
-//     pid_t pid;
-//     char foo[4096];
+const char* call_python(const char* filename) {
+    int pipes[2];
 
-//     if (pipe(link)==-1)
-//         die("pipe failed");
+    assert(pipe(pipes) >= 0);
+    pid_t childpid = fork();
 
-//     if ((pid = fork()) == -1)
-//         die("fork failed");
+    assert(childpid >= 0);
+    if (childpid == 0) {
+        assert(dup2(pipes[1], 1) >= 0);
+        assert(dup2(pipes[1], 2) >= 0);
+        close(pipes[0]);
+        close(pipes[1]);
 
-//     if(pid == 0) {
+        execl(filename, filename, 0, (char*) 0);
+        exit(0);
+    }
 
-//     dup2 (link[1], STDOUT_FILENO);
-//     close(link[0]);
-//     close(link[1]);
-//     execl("/bin/ls", "ls", "-1", (char *)0);
-//     die("execl");
+    close(pipes[1]);
 
-//     } else {
+    unsigned size = 20;
+    char* buffer = malloc(size * sizeof(char));
+    /*unsigned outputSize = */read(pipes[0], buffer, size);
 
-//     close(link[1]);
-//     int nbytes = read(link[0], foo, sizeof(foo));
-//     printf("Output: (%.*s)\n", nbytes, foo);
-//     wait(NULL);
+    close(pipes[0]);
 
-//     }
-//     return 0;
-//     }
-// }
+    return buffer;
+}
 
 /* PAM entry point for authentication verification */
 int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
