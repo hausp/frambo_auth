@@ -9,14 +9,14 @@ void add_all() {
     FILE* raspchar = fopen("/dev/raspchar", "w");
 
     if (!raspchar) {
-        printf("deu ruim\n");
+        printf("Failed to open raspchar\n");
         exit(1);
     }
 
     FILE* users = fopen("/etc/frusers", "r");
 
     if (!users) {
-        printf("deu ruim\n");
+        printf("Failed to open frusers\n");
         fclose(raspchar);
         exit(1);
     }
@@ -24,7 +24,7 @@ void add_all() {
     char line[256];
     while (fgets(line, sizeof(line), users)) {
         if (strcmp(line, "\n") != 0 && strcmp(line, "") != 0) {
-            char* command = malloc(sizeof(char) * (5 + strlen(line)));
+            char* command = (char*) malloc(sizeof(char) * (5 + strlen(line)));
             line[strlen(line) - 1] = '\0';
 
             memcpy(command, "ADD \0", 5);
@@ -53,14 +53,14 @@ const char* call_python(const char* filename) {
         close(pipes[1]);
 
         // char* command = malloc()
-        execl("/usr/bin/python", "/usr/bin/python", filename, (char*) 0);
+        execl("/usr/bin/python", "/usr/bin/python", filename, "--no-alarm", (char*) 0);
         exit(0);
     }
 
     close(pipes[1]);
 
     unsigned size = 20;
-    char* buffer = malloc(size * sizeof(char));
+    char* buffer = (char*) malloc(size * sizeof(char));
     /*unsigned outputSize = */read(pipes[0], buffer, size);
 
     close(pipes[0]);
@@ -84,7 +84,7 @@ uint32_t jenkins_hash(const uint8_t* key, size_t length) {
 
 uint32_t hash_it(const char* plaintext) {
     int length = strlen(plaintext);
-    uint8_t* container = malloc(length * sizeof(uint8_t));
+    uint8_t* container = (uint8_t*) malloc(length * sizeof(uint8_t));
     int i;
     for (i = 0; i < length; i++) {
         container[i] = (uint8_t) plaintext[i];
@@ -100,6 +100,7 @@ int main(int argc, char** argv) {
         const char* rfid;
 
         int read_ok = 0;
+        printf("Please scan your card.\n");
         while (!read_ok) {
             rfid = call_python("/usr/sbin/rfid_reader");
 
@@ -110,13 +111,18 @@ int main(int argc, char** argv) {
             }
         }
 
+        if (strcmp(rfid, "0") == 0) {
+            printf("User registration failed.\n");
+            return 1;
+        }
+
         uint32_t hash = hash_it(rfid);
-        char* hash_text = malloc(15 * sizeof(char));
+        char* hash_text = (char*) malloc(15 * sizeof(char));
 
         sprintf(hash_text, "%u", hash);
 
         FILE* users = fopen("/etc/frusers", "a");
-        char* command = malloc(sizeof(char) * (2 + user_size + strlen(hash_text)));
+        char* command = (char*) malloc(sizeof(char) * (2 + user_size + strlen(hash_text)));
 
         memcpy(command, argv[1], user_size);
         strcat(command, " ");

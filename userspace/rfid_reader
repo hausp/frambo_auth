@@ -1,8 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf8 -*-
 
 import spi
+import signal
 import sys
+
+def handler(signum, frame):
+    print("0")
+    sys.exit(1)
     
 class MFRC522:
     NRSTPD = 22
@@ -194,7 +199,9 @@ class MFRC522:
         self.Write_MFRC522(self.ModeReg, 0x3D)
         self.AntennaOn()
 
-
+if len(sys.argv) == 1:
+    signal.signal(signal.SIGALRM, handler)
+    signal.alarm(5)
 
 MIFAREReader = MFRC522()
 
